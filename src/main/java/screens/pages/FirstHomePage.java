@@ -2,21 +2,26 @@ package screens.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import screens.locators.GoogleHomePageLocators;
+import screens.locators.FirstHomePageLocators;
 
-public class GoogleHomePage extends GoogleHomePageLocators {
-    public GoogleHomePage(WebDriver driver) {
+public class FirstHomePage extends FirstHomePageLocators {
+    public FirstHomePage(WebDriver driver) {
         super(driver);
     }
 
-    public GoogleHomePage checkGoogleLogoDisplayed() {
-        waitVisibilityOfElementLocated(By.xpath(GOOGLE_LOGO)).isDisplayed();
+    public FirstHomePage checkFirstSiteOpened() {
+        waitVisibilityOfElementLocated(By.xpath(FIRST_SITE_LOGO)).isDisplayed();
         return this;
     }
 
+    public FirstHomePage tapClickHereButton() {
+        waitElementToBeClickable(By.xpath(CLICK_HERE_BUTTON)).click();
+        return this;
+    }
 
-
-
-
+    public FirstHomePage tapElementalSeleniumButton() {
+        waitElementToBeClickable(By.xpath(ELEMENTAL_SELENIUM_BUTTON)).click();
+        return this;
+    }
 
 }

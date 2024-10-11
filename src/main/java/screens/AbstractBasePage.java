@@ -1,4 +1,4 @@
-package main;
+package screens;
 
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
@@ -6,93 +6,102 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 
-import static org.testng.AssertJUnit.fail;
+import static org.openqa.selenium.support.ui.ExpectedConditions.*;
 
 @Slf4j
-abstract public class AbstractBasePage {
+public abstract class AbstractBasePage {
+
     protected WebDriver driver;
-    protected WebDriverWait wait;
     protected Actions actions;
+    private static final Duration DEFAULT_WAIT_TIME = Duration.ofSeconds(30);
 
     public AbstractBasePage(WebDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofMillis(5000));
         this.actions = new Actions(driver);
     }
 
-    protected WebElement waitUntilVisibilityOfElementLocated(String locator) {
+    private WebDriverWait getWait(Long timeout) {
+        Duration waitDuration = (timeout != null && timeout > 0) ? Duration.ofSeconds(timeout) : DEFAULT_WAIT_TIME;
+        return new WebDriverWait(driver, waitDuration);
+    }
+
+    protected WebElement waitVisibilityOfElementLocated(By locator, Long timeout) {
         try {
-            return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator)));
+            return getWait(timeout).until(visibilityOfElementLocated(locator));
         } catch (WebDriverException e) {
-            log.error("No visibility element: " + locator);
-            fail("No visibility element: " + locator);
-            return null;
+            log.error("No visibility of element located by: " + locator, e);
+            throw e;
         }
     }
 
-    protected WebElement waitUntilElementToBeClickable(String locator) {
+    protected WebElement waitVisibilityOfElementLocated(By locator) {
+        return waitVisibilityOfElementLocated(locator, null);
+    }
+
+    protected WebElement waitElementToBeClickable(By locator, Long timeout) {
         try {
-            return wait.until(ExpectedConditions.elementToBeClickable(By.xpath(locator)));
+            return getWait(timeout).until(elementToBeClickable(locator));
         } catch (WebDriverException e) {
-            log.error("No clickable element: " + locator);
-            fail("No clickable element: " + locator);
-            return null;
+            log.error("No clickable element located by: " + locator, e);
+            throw e;
         }
     }
 
-    protected List<WebElement> waitUntilVisibilityOfElementsLocated(String locator) {
+    protected WebElement waitElementToBeClickable(By locator) {
+        return waitElementToBeClickable(locator, null);
+    }
+
+    protected List<WebElement> waitVisibilityOfElementsLocated(By locator, Long timeout) {
         try {
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator)));
-            return driver.findElements(By.xpath(locator));
+            return getWait(timeout).until(visibilityOfAllElementsLocatedBy(locator));
         } catch (WebDriverException e) {
-            log.error("No visibility elements: " + locator);
-            fail("No visibility elements: " + locator);
-            return null;
+            log.error("No visible elements located by: " + locator, e);
+            throw e;
         }
     }
 
-    protected List<WebElement> waitUntilElementsToBeClickable(String locator) {
+    protected List<WebElement> waitVisibilityOfElementsLocated(By locator) {
+        return waitVisibilityOfElementsLocated(locator, null);
+    }
+
+    protected List<WebElement> waitElementsToBeClickable(By locator, Long timeout) {
         try {
-            wait.until(ExpectedConditions.elementToBeClickable(By.xpath(locator)));
-            return driver.findElements(By.xpath(locator));
+            getWait(timeout).until(elementToBeClickable(locator));
+            return driver.findElements(locator);
         } catch (WebDriverException e) {
-            log.error("No clickable elements: " + locator);
-            fail("No clickable elements: " + locator);
-            return null;
+            log.error("No clickable elements located by: " + locator, e);
+            throw e;
         }
     }
 
-    public void waitUntilUrlContainsText(String urlPath) {
+    protected List<WebElement> waitElementsToBeClickable(By locator) {
+        return waitElementsToBeClickable(locator, null);
+    }
+
+    public void waitUrlContainsText(String urlPath, Long timeout) {
         try {
-            wait.until(ExpectedConditions.urlContains(urlPath));
+            getWait(timeout).until(urlContains(urlPath));
         } catch (WebDriverException e) {
-            log.error("This URL path is missing: " + urlPath);
-            fail("This URL path is missing: " + urlPath);
-            throw new AssertionError("This URL path is missing: " + urlPath);
+            log.error("This URL path is missing: " + urlPath, e);
+            throw new AssertionError("This URL path is missing: " + urlPath, e);
         }
     }
 
-    public void waitUntilNumberOfTabToBe(int tabNumber) {
-        try {
-            wait.until(ExpectedConditions.numberOfWindowsToBe(tabNumber));
-        } catch (WebDriverException e) {
-            log.error("No tabs with this number: " + tabNumber);
-            fail("No tabs with this number: " + tabNumber);
-            throw new AssertionError("No tabs with this number: " + tabNumber);
-        }
+    public String getTitle() {
+        return driver.getTitle();
     }
 
-    public void goToNextTab(int tabNumber) {
-        waitUntilNumberOfTabToBe(tabNumber);
-        ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
-        driver.switchTo().window(tabs.get(tabNumber - 1));
+    public String getCurrentUrl() {
+        return driver.getCurrentUrl();
+    }
+
+    public WebDriver getWebDriver() {
+        return driver;
     }
 
     protected void moveCursor(WebElement element) {
@@ -102,4 +111,5 @@ abstract public class AbstractBasePage {
     protected void doubleClick(WebElement element) {
         actions.doubleClick(element).build().perform();
     }
+
 }
